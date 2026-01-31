@@ -37,6 +37,7 @@ The games are categorized by technical complexity, ranging from basic logic impl
 - [ ] **Minesweeper:** Implementation of Flood Fill algorithms (Recursion) and grid state management.
 - [ ] **Othello (Reversi):** Grid traversal logic (vertical/horizontal/diagonal checks) and tile flipping.
 - [ ] **Checkers (Dama):** Diagonal movement restrictions and "forced capture" logic.
+- [ ] **Ludo:** Path-based movement logic, collision handling (sending opponent home), and turn-based dice mechanics.
 
 ### 🟡 Phase 3: Advanced State & UI Interactions
 *Focus: Complex Drag-and-Drop, Turn Management, and Trick-Taking Logic.*
