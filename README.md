@@ -73,6 +73,59 @@ The games are categorized by technical complexity, ranging from basic logic impl
 * **Language:** TypeScript (Strict typing for game logic)
 * **Storage:** Native File System API via Tauri
 
+## 📂 Project Structure
+
+```
+src/
+├── assets/                  # 🎨 Aset Global (Logo, Font, Global CSS)
+│   ├── audio/               # (sfx-click.mp3, bgm-lobby.mp3)
+│   └── images/              # (background-wood.jpg, logo.png)
+│
+├── common/                  # 🛠️ Shared Code (Bisa dipake semua game)
+│   ├── components/          # "LEGO"-nya UI (Atomic Components)
+│   │   ├── BaseButton.vue   # Tombol style Tailwind standar
+│   │   ├── BaseCard.vue     # Kotak kartu kosong (frame)
+│   │   ├── ModalDialog.vue  # Pop-up (Pause/Game Over)
+│   │   └── GameLayout.vue   # Layout dasar (ada tombol back, score)
+│   │
+│   └── utils/               # Fungsi bantu (Helper)
+│       ├── tauriStorage.ts  # Wrapper save/load file ke laptop
+│       ├── soundManager.ts  # Logic play audio
+│       └── randomizer.ts    # Logic ngocok dadu/kartu
+│
+├── games/                   # 📦 MODUL GAME (Rumah masing-masing game)
+│   │                        # Kalo mau hapus game, hapus 1 folder ini aja.
+│   ├── blackjack/           
+│   │   ├── components/      # UI khusus Blackjack (ChipButton, DealerHand)
+│   │   ├── logic/           # 🧠 OTAKNYA (Pure TypeScript, No Vue!)
+│   │   │   ├── deck.ts      # Logic bikin 52 kartu
+│   │   │   ├── scoring.ts   # Logic hitung nilai (As = 1/11)
+│   │   │   └── types.ts     # TypeScript Interfaces
+│   │   ├── store.ts         # 🏪 PINIA (Jembatan Logic ke UI)
+│   │   └── BlackjackView.vue # Tampilan utama game
+│   │
+│   ├── gaple/
+│   │   ├── components/      # UI khusus Gaple (DominoTile)
+│   │   ├── logic/           # Pure TS (Rules, Valid Move)
+│   │   ├── store.ts         # Pinia Gaple
+│   │   └── GapleView.vue    # Tampilan utama game
+│   │
+│   └── ... (game lainnya)
+│
+├── router/                  # 🚦 Pengatur Lalu Lintas URL
+│   └── index.ts             # (Home -> /game/gaple, dll)
+│
+├── stores/                  # 🌍 Global Store (Bukan game logic)
+│   └── appStore.ts          # Simpan settingan (Volume, Nama User, Theme)
+│
+├── views/                   # 🏠 Halaman Umum
+│   ├── HomeView.vue         # Menu Utama (Daftar Game)
+│   └── SettingsView.vue     # Halaman Pengaturan
+│
+├── App.vue                  # Root
+└── main.ts                  # Entry Point
+```
+
 ## 🚀 Getting Started
 
 ### Prerequisites
