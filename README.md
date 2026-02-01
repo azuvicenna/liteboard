@@ -34,7 +34,7 @@ The games are categorized by technical complexity, ranging from basic logic impl
 
 ### 🔵 Phase 2: Grid Logic & Intermediate Rules
 *Focus: 2D Arrays, Recursion, and Basic "Minimax" concepts.*
-- [ ] Snakes & Ladders: 1D to 2D grid mapping (zigzag path), state jumping logic, and simple RNG dice mechanics.
+- [ ] **Snakes & Ladders:** 1D to 2D grid mapping (zigzag path), state jumping logic, and simple RNG dice mechanics.
 - [ ] **Minesweeper:** Implementation of Flood Fill algorithms (Recursion) and grid state management.
 - [ ] **Othello (Reversi):** Grid traversal logic (vertical/horizontal/diagonal checks) and tile flipping.
 - [ ] **Checkers (Dama):** Diagonal movement restrictions and "forced capture" logic.
