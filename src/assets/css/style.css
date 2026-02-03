@@ -1,0 +1,69 @@
+@import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+@theme {
+    /* ===================================
+     BASE FONTS
+     =================================== */
+
+    --font-sans: "Inter", sans-serif;
+
+    /* ===================================
+     BASE COLORS (Slate Palette Mapping)
+     =================================== */
+
+    /* 1. Backgrounds & Surfaces */
+    --color-bg-app: #020617;
+    --color-bg-surface: #0f172a;
+    --color-bg-hover: #1e293b;
+    --color-bg-active: #f1f5f9;
+
+    /* 2. Borders & Separators */
+    --color-border: #1e293b;
+    --color-border-high: #334155;
+
+    /* 3. Typography */
+    --color-text-main: #e2e8f0;
+    --color-text-sec: #94a3b8;
+    --color-text-muted: #64748b;
+    --color-text-dark: #0f172a;
+}
+
+/* ===================================
+   GLOBAL RESET
+   =================================== */
+@layer base {
+
+    html,
+    body {
+        overscroll-behavior: none;
+        touch-action: pan-y;
+    }
+
+    html {
+        font-size: 90%;
+    }
+
+    body {
+        background-color: var(--color-bg-app);
+        color: var(--color-text-main);
+        font-family: var(--font-sans);
+
+        user-select: none;
+        -webkit-user-select: none;
+        -webkit-user-drag: none;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+    }
+
+    body::-webkit-scrollbar {
+        display: none;
+    }
+
+    input,
+    textarea {
+        user-select: text;
+        -webkit-user-select: text;
+        cursor: text;
+    }
+}
