@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LiteBoard - Hanafuda Koi-Koi</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;800;900&family=Noto+Serif+JP:wght@700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Nunito', sans-serif; background-color: #020617; margin: 0; overflow: hidden; }
+
+        /* --- 1. MEJA & LAYOUT --- */
+        .main-wrapper {
+            height: 100vh; width: 100vw;
+            display: flex; align-items: center; justify-content: center;
+        }
+
+        .table-rail {
+            background: linear-gradient(145deg, #1e293b, #020617);
+            padding: 25px; border-radius: 50px;
+            box-shadow: 0 50px 120px -20px rgba(0,0,0,1);
+            display: flex; align-items: center; justify-content: center;
+        }
+
+        .table-felt {
+            background-color: #064e3b;
+            background-image: radial-gradient(circle at center, rgba(255,255,255,0.05) 0%, rgba(0,0,0,0.4) 100%);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            border-radius: 40px;
+            width: 1000px; height: 650px;
+            position: relative; overflow: hidden;
+        }
+
+        /* Watermark */
+        .wm-layer {
+            position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+            pointer-events: none; z-index: 0;
+        }
+        .wm-text {
+            font-size: 11rem; font-weight: 900; color: white;
+            opacity: 0.05; transform: rotate(-10deg); letter-spacing: -5px;
+        }
+
+        /* --- 2. KARTU HANAFUDA (Style Tradisional) --- */
+        .card-hana {
+            width: 48px; height: 76px; /* Rasio sempit khas Hanafuda */
+            background: white; border-radius: 4px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.5);
+            position: relative; cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            border: 2px solid white;
+            display: flex; align-items: center; justify-content: center;
+            overflow: hidden;
+        }
+        .card-hana:hover { transform: translateY(-8px); z-index: 50; border-color: #fbbf24; box-shadow: 0 0 15px rgba(251, 191, 36, 0.4); }
+
+        /* Bingkai Hitam Dalam (Khas Hanafuda) */
+        .hana-inner {
+            width: 88%; height: 92%;
+            border: 3px solid #1e293b;
+            border-radius: 2px;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            position: relative; background: #fff;
+        }
+
+        /* Visual Kartu (Simulasi CSS) */
+        .type-bright { background: linear-gradient(135deg, #fff 60%, #ef4444 60%); } /* Hikari (Terang) */
+        .type-animal { background: #fff; } 
+        .type-ribbon { position: relative; }
+        
+        /* Ribbon Strip */
+        .ribbon-mark {
+            position: absolute; top: 10px; width: 60%; height: 25px;
+            background: #ef4444; transform: skewY(-10deg);
+            border: 2px solid #1e293b; border-radius: 2px;
+            display: flex; align-items: center; justify-content: center;
+            color: white; font-size: 8px; font-weight: bold;
+        }
+        .ribbon-blue { background: #60a5fa; }
+
+        /* Simbol (Emoji sebagai ilustrasi) */
+        .hana-icon { font-size: 28px; line-height: 1; filter: drop-shadow(0 2px 2px rgba(0,0,0,0.2)); }
+        .hana-month { font-family: 'Noto Serif JP', serif; font-size: 10px; position: absolute; bottom: 2px; right: 2px; color: #94a3b8; }
+
+        /* Card Back */
+        .hana-back {
+            background: #7f1d1d; /* Merah Tua Gelap */
+            background-image: repeating-radial-gradient(circle, #991b1b 2px, #7f1d1d 4px);
+            border: none;
+        }
+        .hana-back::after {
+            content: ''; position: absolute; inset: 4px;
+            border: 2px solid rgba(255,255,255,0.1); border-radius: 2px;
+        }
+
+        /* --- 3. LAYOUT AREA --- */
+        /* Field (Ba) - Grid di tengah */
+        .field-area {
+            display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;
+            padding: 15px; border-radius: 12px;
+            background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        /* Player Hand */
+        .hand-area { display: flex; gap: 8px; align-items: flex-end; height: 90px; }
+        
+        /* Captured Area (Kanan) */
+        .captured-zone {
+            display: flex; flex-direction: column; gap: 10px;
+            background: rgba(15, 23, 42, 0.6); padding: 10px; border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.1); width: 200px;
+        }
+        .captured-row { display: flex; gap: 4px; flex-wrap: wrap; min-height: 40px; align-items: center; }
+        .cap-label { font-size: 9px; color: #94a3b8; font-weight: 800; text-transform: uppercase; width: 100%; margin-bottom: 2px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        
+        /* Stacked Captured Cards (Overlap) */
+        .captured-row .card-hana { width: 32px; height: 50px; border-width: 1px; margin-right: -15px; box-shadow: 1px 1px 3px rgba(0,0,0,0.3); }
+        .captured-row .card-hana:hover { transform: translateY(-5px); z-index: 10; margin-right: 0; }
+        .captured-row .hana-inner { border-width: 1px; }
+        .captured-row .hana-icon { font-size: 18px; }
+
+        /* --- 4. YAKU POPUP --- */
+        .yaku-toast {
+            position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%);
+            background: rgba(220, 38, 38, 0.95); color: white;
+            padding: 10px 25px; border-radius: 50px;
+            font-family: 'Noto Serif JP', serif; font-weight: 700; font-size: 24px;
+            box-shadow: 0 0 30px rgba(220, 38, 38, 0.6);
+            border: 2px solid #fca5a5; z-index: 100;
+            animation: pulse 1.5s infinite;
+            display: flex; gap: 10px; align-items: center;
+        }
+        
+        /* KOI KOI BUTTON */
+        .koikoi-btn {
+            background: linear-gradient(to bottom, #f59e0b, #d97706);
+            border: 2px solid #fcd34d; border-radius: 99px;
+            padding: 10px 30px; font-weight: 900; color: #78350f;
+            font-size: 18px; text-transform: uppercase; letter-spacing: 1px;
+            box-shadow: 0 10px 20px rgba(245, 158, 11, 0.4);
+            transition: all 0.1s; cursor: pointer;
+        }
+        .koikoi-btn:hover { transform: scale(1.05); filter: brightness(1.1); }
+        .koikoi-btn:active { transform: scale(0.95); box-shadow: 0 2px 10px rgba(245, 158, 11, 0.4); }
+
+    </style>
+</head>
+<body>
+
+    <div class="main-wrapper">
+        <div class="table-rail">
+            <div class="table-felt">
+
+                <div class="wm-layer"><h1 class="wm-text">LITEBOARD</h1></div>
+
+                <div class="absolute top-6 flex flex-col items-center gap-2">
+                    <div class="flex items-center gap-4">
+                        <div class="w-10 h-10 rounded-full bg-slate-800 border border-slate-600 flex items-center justify-center text-lg">🤖</div>
+                        <div class="hand-area scale-90 opacity-80">
+                            <div class="card-hana hana-back"></div><div class="card-hana hana-back"></div><div class="card-hana hana-back"></div><div class="card-hana hana-back"></div>
+                            <div class="card-hana hana-back"></div><div class="card-hana hana-back"></div><div class="card-hana hana-back"></div><div class="card-hana hana-back"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="absolute top-6 right-6 scale-90 origin-top-right opacity-70">
+                    <div class="captured-zone">
+                        <div class="cap-label">Points (15)</div>
+                        <div class="captured-row">
+                             <div class="card-hana"><div class="hana-inner"><span class="hana-icon">🌸</span></div></div> <div class="card-hana"><div class="hana-inner"><div class="ribbon-mark">赤</div><span class="hana-icon">🌿</span></div></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 flex gap-8 items-center">
+                    
+                    <div class="relative cursor-pointer">
+                        <div class="card-hana hana-back absolute top-1 left-1"></div>
+                        <div class="card-hana hana-back"></div>
+                        <p class="text-[9px] text-center text-slate-400 font-bold mt-2 uppercase">Deck</p>
+                    </div>
+
+                    <div class="field-area">
+                        <div class="card-hana"><div class="hana-inner"><span class="hana-icon">🌲</span><span class="hana-month">1</span></div></div>
+                        <div class="card-hana"><div class="hana-inner"><span class="hana-icon">🌺</span><span class="hana-month">2</span></div></div>
+                        <div class="card-hana"><div class="hana-inner"><div class="ribbon-mark ribbon-blue"></div><span class="hana-icon">🌸</span><span class="hana-month">3</span></div></div>
+                        <div class="card-hana"><div class="hana-inner"><span class="hana-icon">🪻</span><span class="hana-month">4</span></div></div>
+                        <div class="card-hana"><div class="hana-inner"><span class="hana-icon">💠</span><span class="hana-month">5</span></div></div>
+                        <div class="card-hana"><div class="hana-inner"><div class="ribbon-mark ribbon-blue"></div><span class="hana-icon">🌹</span><span class="hana-month">6</span></div></div>
+                        <div class="card-hana"><div class="hana-inner"><span class="hana-icon">🐗</span><span class="hana-month">7</span></div></div>
+                        <div class="card-hana"><div class="hana-inner"><span class="hana-icon">🌕</span><span class="hana-month">8</span></div></div>
+                    </div>
+
+                </div>
+
+                <div class="yaku-toast">
+                    <span>🎴</span> Ino-Shika-Cho!
+                </div>
+
+                <div class="absolute bottom-6 flex flex-col items-center gap-6 w-full px-12">
+                    
+                    <div class="flex justify-between w-full items-end">
+                        
+                        <div class="flex gap-4 items-end">
+                            <div class="avatar w-12 h-12 rounded-full border-2 border-emerald-500 bg-slate-900 flex items-center justify-center text-xl shadow-[0_0_15px_#10b981]">🤠</div>
+                            
+                            <div class="hand-area">
+                                <div class="card-hana"><div class="hana-inner"><span class="hana-icon">🍁</span><span class="hana-month">10</span></div></div>
+                                <div class="card-hana"><div class="hana-inner"><div class="ribbon-mark">赤</div><span class="hana-icon">🍁</span><span class="hana-month">10</span></div></div>
+                                <div class="card-hana"><div class="hana-inner"><span class="hana-icon">🎴</span><span class="hana-month">11</span></div></div> <div class="card-hana"><div class="hana-inner"><span class="hana-icon">⚡</span><span class="hana-month">11</span></div></div>
+                                <div class="card-hana"><div class="hana-inner"><span class="hana-icon">🐦</span><span class="hana-month">12</span></div></div>
+                                <div class="card-hana"><div class="hana-inner"><span class="hana-icon">🎍</span><span class="hana-month">1</span></div></div>
+                                <div class="card-hana"><div class="hana-inner"><div class="ribbon-mark">赤</div><span class="hana-icon">🎍</span><span class="hana-month">1</span></div></div>
+                                <div class="card-hana"><div class="hana-inner"><span class="hana-icon">🍶</span><span class="hana-month">9</span></div></div> </div>
+                        </div>
+
+                        <div class="flex gap-4 pb-2">
+                            <button class="px-6 py-2 rounded-full bg-slate-700 font-bold text-white border border-slate-500 hover:bg-slate-600">Stop</button>
+                            <button class="koikoi-btn">KOI-KOI!</button>
+                        </div>
+
+                        <div class="captured-zone">
+                            <div class="cap-label text-yellow-400">Brights</div>
+                            <div class="captured-row">
+                                <div class="card-hana type-bright"><div class="hana-inner"><span class="hana-icon">☀️</span></div></div> <div class="card-hana type-bright"><div class="hana-inner"><span class="hana-icon">🐦</span></div></div> </div>
+                            
+                            <div class="cap-label text-emerald-400">Animals</div>
+                            <div class="captured-row">
+                                <div class="card-hana"><div class="hana-inner"><span class="hana-icon">🦋</span></div></div> <div class="card-hana"><div class="hana-inner"><span class="hana-icon">🐗</span></div></div> <div class="card-hana"><div class="hana-inner"><span class="hana-icon">🦌</span></div></div> </div>
+
+                            <div class="cap-label text-red-400">Ribbons</div>
+                            <div class="captured-row">
+                                <div class="card-hana"><div class="hana-inner"><div class="ribbon-mark">赤</div></div></div>
+                                <div class="card-hana"><div class="hana-inner"><div class="ribbon-mark ribbon-blue"></div></div></div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>

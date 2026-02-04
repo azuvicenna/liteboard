@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LiteBoard - Mahjong Scalable Final</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;900&family=Noto+Serif+JP:wght@900&display=swap" rel="stylesheet">
+    <style>
+        body { 
+            font-family: 'Nunito', sans-serif; 
+            background-color: #020617; 
+            margin: 0; 
+            overflow: hidden; 
+            height: 100vh; 
+            display: flex; 
+            flex-direction: column; 
+        }
+
+        /* --- 1. AREA ATAS (MEJA) - FLEXIBLE --- */
+        /* Area ini akan mengambil sisa ruang yang ada */
+        .game-arena {
+            flex-grow: 1;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+            background: radial-gradient(circle at center, #1e293b 0%, #020617 100%);
+        }
+
+        /* Container Meja dengan Skala Otomatis */
+        /* Menggunakan vmin agar selalu muat di layar tanpa scroll */
+        .table-scaler {
+            width: 85vmin; /* Maksimal 85% dari sisi terpendek layar */
+            height: 85vmin;
+            max-width: 800px;
+            max-height: 800px;
+            position: relative;
+        }
+
+        .table-felt {
+            width: 100%; height: 100%;
+            background-color: #065f46;
+            background-image: radial-gradient(circle at center, rgba(255,255,255,0.05) 0%, rgba(0,0,0,0.4) 100%);
+            border: 1.5vmin solid #1e293b; 
+            border-radius: 5vmin;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.8);
+            position: relative; 
+            display: flex; align-items: center; justify-content: center;
+        }
+
+        /* --- 2. UBIN PUTIH SOLID (SCALABLE) --- */
+        /* Ukuran pakai % atau vmin biar ikut mengecil */
+        .tile-v {
+            width: 5.5vmin; height: 7.8vmin;
+            background: #ffffff; border: 1px solid #d1d5db; border-radius: 0.5vmin;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 4.5vmin; color: #0f172a;
+            box-shadow: 0 0.5vmin 0 #94a3b8, 0 1vmin 1.2vmin rgba(0,0,0,0.4);
+            cursor: pointer; transition: transform 0.1s;
+        }
+        .tile-v:hover { transform: translateY(-1.5vmin); border-color: #3b82f6; }
+
+        .tile-flat {
+            width: 4vmin; height: 5.5vmin; background: #ffffff;
+            border: 1px solid #94a3b8; border-radius: 0.3vmin;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 3vmin; box-shadow: 1px 2px 0 #64748b;
+        }
+
+        .tile-back { background: #f59e0b; border: 1px solid #b45309; box-shadow: 0 0.5vmin 0 #92400e; }
+
+        /* --- 3. POSISI --- */
+        .center-info {
+            width: 20vmin; height: 20vmin; background: #0f172a; border: 2px solid #334155;
+            border-radius: 2vmin; display: flex; flex-direction: column; align-items: center; justify-content: center;
+            z-index: 10;
+        }
+        
+        .river { display: grid; grid-template-columns: repeat(6, 1fr); gap: 0.5vmin; position: absolute; }
+        .river-bottom { bottom: 28%; left: 50%; transform: translateX(-50%); }
+        .river-top { top: 28%; left: 50%; transform: translateX(-50%) rotate(180deg); }
+
+        .hand-bottom { position: absolute; bottom: 3%; left: 50%; transform: translateX(-50%); display: flex; gap: 0.2vmin; }
+        .hand-top { position: absolute; top: 3%; left: 50%; transform: translateX(-50%) rotate(180deg); display: flex; gap: 0.2vmin; opacity: 0.6; }
+
+        /* --- 4. ACTION BAR (STATIC HEIGHT) --- */
+        /* Area ini tingginya tetap, Meja di atas yang ngalah (mengecil) */
+        .action-bar {
+            height: 90px; width: 100%;
+            background: #0f172a; border-top: 4px solid #334155;
+            display: flex; align-items: center; justify-content: center; gap: 15px;
+            flex-shrink: 0; /* Gak boleh mengecil */
+            z-index: 100;
+        }
+
+        .btn-action {
+            padding: 12px 30px; border-radius: 12px; font-weight: 900; font-size: 16px;
+            color: white; background: #1e293b; border: 1px solid #475569;
+            text-transform: uppercase; letter-spacing: 1px; transition: all 0.1s;
+        }
+        .btn-action:hover { background: #334155; transform: translateY(-2px); }
+        .btn-ron { background: #ef4444; border-color: #f87171; box-shadow: 0 0 15px rgba(239, 68, 68, 0.4); }
+
+    </style>
+</head>
+<body>
+
+    <div class="game-arena">
+        
+        <div class="absolute opacity-[0.03] pointer-events-none">
+            <h1 class="text-[20vmin] font-black -rotate-12">LITEBOARD</h1>
+        </div>
+
+        <div class="table-scaler">
+            <div class="table-felt">
+                
+                <div class="center-info">
+                    <span class="text-amber-400 text-[4vmin] font-bold">東 1</span>
+                    <div class="w-[8vmin] h-[1vmin] bg-white rounded mt-2 border-r-[4vmin] border-red-500"></div>
+                </div>
+
+                <div class="river river-bottom">
+                    <div class="tile-flat">🀀</div><div class="tile-flat">🀘</div><div class="tile-flat">🀙</div>
+                    <div class="tile-flat">🀡</div><div class="tile-flat">🀆</div><div class="tile-flat">🀇</div>
+                </div>
+                <div class="river river-top">
+                    <div class="tile-flat">🀃</div><div class="tile-flat">🀂</div><div class="tile-flat">🀑</div>
+                </div>
+
+                <div class="hand-top">
+                    <div class="tile-v tile-back"></div><div class="tile-v tile-back"></div><div class="tile-v tile-back"></div>
+                    <div class="tile-v tile-back"></div><div class="tile-v tile-back"></div><div class="tile-v tile-back"></div>
+                    <div class="tile-v tile-back"></div><div class="tile-v tile-back"></div><div class="tile-v tile-back"></div>
+                    <div class="tile-v tile-back"></div><div class="tile-v tile-back"></div><div class="tile-v tile-back"></div><div class="tile-v tile-back"></div>
+                </div>
+
+                <div class="hand-bottom">
+                    <div class="tile-v">🀇</div><div class="tile-v">🀈</div><div class="tile-v">🀉</div>
+                    <div class="tile-v">🀝</div><div class="tile-v text-red-500">🀝</div><div class="tile-v">🀟</div>
+                    <div class="tile-v">🀒</div><div class="tile-v">🀓</div><div class="tile-v">🀔</div>
+                    <div class="tile-v">🀀</div><div class="tile-v">🀀</div><div class="tile-v">🀆</div><div class="tile-v">🀆</div>
+                    <div class="tile-v ml-[2vmin] border-blue-500 border-2">🀅</div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <div class="action-bar">
+        <button class="btn-action opacity-50">Skip</button>
+        <button class="btn-action">Pon</button>
+        <button class="btn-action">Chi</button>
+        <button class="btn-action">Kan</button>
+        <button class="btn-action">Riichi</button>
+        <button class="btn-action btn-ron">RON!</button>
+    </div>
+
+</body>
+</html>

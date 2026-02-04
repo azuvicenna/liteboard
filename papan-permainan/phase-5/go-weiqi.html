@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LiteBoard - Go (Weiqi) Arena</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;800;900&family=Noto+Serif+JP:wght@700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Nunito', sans-serif; background-color: #020617; margin: 0; overflow: hidden; }
+
+        /* --- 1. LAYOUT UTAMA --- */
+        .main-wrapper {
+            height: 100vh; width: 100vw;
+            display: flex; align-items: center; justify-content: center;
+        }
+
+        .table-rail {
+            background: linear-gradient(145deg, #1e293b, #020617);
+            padding: 30px; border-radius: 50px;
+            box-shadow: 0 50px 120px -20px rgba(0,0,0,1);
+            display: flex; align-items: center; justify-content: center;
+        }
+
+        .table-felt {
+            background-color: #064e3b;
+            background-image: radial-gradient(circle at center, rgba(255,255,255,0.05) 0%, rgba(0,0,0,0.4) 100%);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            border-radius: 40px;
+            width: 1000px; height: 700px;
+            position: relative; display: flex; align-items: center; justify-content: center;
+            overflow: hidden;
+        }
+
+        /* Watermark */
+        .wm-layer {
+            position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; pointer-events: none; z-index: 0;
+        }
+        .wm-text {
+            font-size: 11rem; font-weight: 900; color: white; opacity: 0.05; transform: rotate(-10deg); letter-spacing: -5px;
+        }
+
+        /* --- 2. GOBAN (Papan Go) --- */
+        .goban-container {
+            padding: 15px;
+            background: #eab308; /* Fallback */
+            background: radial-gradient(#facc15, #ca8a04); /* Efek Kayu */
+            border-radius: 4px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.6), inset 0 0 20px rgba(0,0,0,0.2);
+            position: relative; z-index: 10;
+        }
+
+        .goban-grid {
+            display: grid;
+            grid-template-columns: repeat(19, 1fr);
+            grid-template-rows: repeat(19, 1fr);
+            width: 500px; height: 500px;
+            position: relative;
+            /* Membuat Garis Grid menggunakan Gradient Background */
+            background-image: 
+                linear-gradient(to right, #000 1px, transparent 1px),
+                linear-gradient(to bottom, #000 1px, transparent 1px);
+            background-size: 26.3px 26.3px; /* Ukuran sel presisi untuk 19x19 di 500px */
+            /* Geser background agar garis ada di tengah sel */
+            background-position: center; 
+            border: 1px solid #000;
+        }
+
+        /* Titik Bintang (Hoshi) */
+        .hoshi {
+            position: absolute; width: 6px; height: 6px; background: #000; border-radius: 50%; transform: translate(-50%, -50%);
+        }
+
+        /* Intersection / Click Area */
+        .point {
+            width: 100%; height: 100%;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer;
+        }
+        .point:hover::after {
+            content: ''; width: 14px; height: 14px; background: rgba(0,0,0,0.2); border-radius: 50%;
+        }
+
+        /* --- 3. BATU (Stones) --- */
+        .stone {
+            width: 22px; height: 22px; border-radius: 50%;
+            box-shadow: 1px 2px 3px rgba(0,0,0,0.5);
+            z-index: 20;
+        }
+        
+        /* Batu Hitam (Slate) - Matte */
+        .stone-b {
+            background: radial-gradient(circle at 35% 35%, #475569, #020617);
+        }
+        
+        /* Batu Putih (Shell) - Glossy */
+        .stone-w {
+            background: radial-gradient(circle at 35% 35%, #ffffff, #cbd5e1);
+        }
+
+        /* Marker Terakhir (Triangle/Circle) */
+        .last-move::before {
+            content: ''; width: 6px; height: 6px; border: 1px solid red; border-radius: 50%; 
+            position: absolute;
+        }
+        .stone-b.last-move::before { border-color: white; }
+        .stone-w.last-move::before { border-color: black; }
+
+
+        /* --- 4. UI PANELS --- */
+        .player-panel {
+            background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(8px);
+            border: 1px solid rgba(255,255,255,0.1); border-radius: 20px;
+            padding: 20px; width: 160px;
+            display: flex; flex-direction: column; align-items: center; gap: 10px;
+        }
+
+        .bowl {
+            width: 80px; height: 80px; border-radius: 50%;
+            position: relative; margin-bottom: 10px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+            display: flex; align-items: center; justify-content: center;
+        }
+        /* Bowl Kayu Gelap untuk Putih */
+        .bowl-dark {
+            background: radial-gradient(circle at 30% 30%, #78350f, #451a03);
+            border: 1px solid #92400e;
+        }
+        /* Bowl Kayu Terang untuk Hitam */
+        .bowl-light {
+            background: radial-gradient(circle at 30% 30%, #d97706, #92400e);
+            border: 1px solid #f59e0b;
+        }
+        /* Isi Bowl */
+        .bowl-stones {
+            width: 70%; height: 70%; border-radius: 50%;
+            background-image: radial-gradient(circle, transparent 20%, rgba(0,0,0,0.2) 100%);
+            display: flex; flex-wrap: wrap; justify-content: center; align-items: center; overflow: hidden; padding: 4px; gap: 1px;
+        }
+        .mini-stone { width: 10px; height: 10px; border-radius: 50%; }
+        .ms-b { background: #000; }
+        .ms-w { background: #fff; }
+
+        .captured-count {
+            font-family: 'Noto Serif JP', serif; font-size: 14px; color: #94a3b8;
+            border-bottom: 1px solid rgba(255,255,255,0.1); width: 100%; text-align: center; padding-bottom: 4px;
+        }
+        
+        .timer-display {
+            font-family: monospace; font-size: 24px; font-weight: 900;
+        }
+        .t-active { color: #34d399; text-shadow: 0 0 10px rgba(52, 211, 153, 0.4); }
+
+    </style>
+</head>
+<body>
+
+    <div class="main-wrapper">
+        <div class="table-rail">
+            <div class="table-felt">
+
+                <div class="wm-layer"><h1 class="wm-text">LITEBOARD</h1></div>
+
+                <div class="flex gap-10 items-center z-10">
+
+                    <div class="player-panel border-l-4 border-l-slate-900">
+                        <div class="bowl bowl-light">
+                            <div class="bowl-stones">
+                                <div class="mini-stone ms-b"></div><div class="mini-stone ms-b"></div><div class="mini-stone ms-b"></div>
+                                <div class="mini-stone ms-b"></div><div class="mini-stone ms-b"></div><div class="mini-stone ms-b"></div>
+                            </div>
+                        </div>
+                        <div class="text-center">
+                            <p class="text-white font-bold text-lg">Black</p>
+                            <p class="captured-count">Prisoners: 2</p>
+                        </div>
+                        <div class="timer-display t-active">18:45</div>
+                        <div class="text-[10px] text-emerald-400 font-bold uppercase tracking-wider animate-pulse">Your Turn</div>
+                    </div>
+
+                    <div class="goban-container">
+                        <div class="goban-grid">
+                            
+                            <div class="hoshi" style="top: 15.8%; left: 15.8%;"></div> <div class="hoshi" style="top: 15.8%; left: 50%;"></div> <div class="hoshi" style="top: 15.8%; left: 84.2%;"></div>
+                            <div class="hoshi" style="top: 50%; left: 15.8%;"></div> <div class="hoshi" style="top: 50%; left: 50%;"></div> <div class="hoshi" style="top: 50%; left: 84.2%;"></div>
+                            <div class="hoshi" style="top: 84.2%; left: 15.8%;"></div> <div class="hoshi" style="top: 84.2%; left: 50%;"></div> <div class="hoshi" style="top: 84.2%; left: 84.2%;"></div>
+
+                            <div class="point" style="grid-column: 4; grid-row: 4;"><div class="stone stone-b"></div></div>
+                            <div class="point" style="grid-column: 16; grid-row: 4;"><div class="stone stone-w"></div></div>
+                            
+                            <div class="point" style="grid-column: 3; grid-row: 5;"><div class="stone stone-w"></div></div>
+                            <div class="point" style="grid-column: 17; grid-row: 16;"><div class="stone stone-b"></div></div>
+
+                            <div class="point" style="grid-column: 16; grid-row: 17;"><div class="stone stone-w"></div></div>
+                            <div class="point" style="grid-column: 17; grid-row: 17;"><div class="stone stone-b"></div></div>
+                            <div class="point" style="grid-column: 16; grid-row: 16;"><div class="stone stone-b last-move"></div></div> </div>
+                    </div>
+
+                    <div class="player-panel border-r-4 border-r-white">
+                        <div class="bowl bowl-dark">
+                            <div class="bowl-stones">
+                                <div class="mini-stone ms-w"></div><div class="mini-stone ms-w"></div><div class="mini-stone ms-w"></div>
+                                <div class="mini-stone ms-w"></div><div class="mini-stone ms-w"></div><div class="mini-stone ms-w"></div>
+                            </div>
+                        </div>
+                        <div class="text-center">
+                            <p class="text-white font-bold text-lg">White</p>
+                            <p class="captured-count">Prisoners: 0</p>
+                            <p class="text-[10px] text-slate-500 mt-1">Komi: 6.5</p>
+                        </div>
+                        <div class="timer-display text-slate-500">20:00</div>
+                    </div>
+
+                </div>
+
+                <div class="absolute bottom-8 flex gap-4 z-20">
+                    <button class="px-6 py-2 rounded-full bg-slate-800 text-slate-300 font-bold border border-slate-600 hover:bg-slate-700">Pass</button>
+                    <button class="px-6 py-2 rounded-full bg-emerald-700 text-white font-bold border border-emerald-500 hover:bg-emerald-600 shadow-lg">Submit Move</button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>
